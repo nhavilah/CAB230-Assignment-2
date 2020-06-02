@@ -1,8 +1,8 @@
+require('dotenv').config();
 var express = require('express');
 var router = express.Router();
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const env = require('dotenv').config()
 
 router.post("/register", function (req, res, next) {
   //retrieve email and password from req.body
@@ -85,7 +85,8 @@ router.post("/login", function (req, res, next) {
         return
       }
       //create and return JWT token
-      const secretKey = "secret";
+      const secretKey = process.env.SECRET_KEY;
+      console.log(secretKey);
       const expires_in = 60 * 60 * 24 //1 day
       const exp = Math.floor(Date.now() / 1000) + (60 * 60)
       console.log(exp);

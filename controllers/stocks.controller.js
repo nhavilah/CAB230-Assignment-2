@@ -1,9 +1,9 @@
+require('dotenv').config();
 const stockServices = require('../services/stocks.service');
 const authedServices = require('../services/stocks.authed.service');
 var express = require('express');
 const jwt = require('jsonwebtoken');
 var router = express.Router();
-const env = require('dotenv').config();
 
 router.get('/symbols', async (req, res) => {
     let stocks;
@@ -54,7 +54,6 @@ router.get('/:symbol', async (req, res) => {
 const authorize = (req, res, next) => {
     const authorization = req.headers.authorization
     let token = null;
-    const secretKey = "secret";
 
     //retrieve token
     if (authorization && authorization.split(" ").length === 2) {
@@ -71,6 +70,7 @@ const authorize = (req, res, next) => {
     }
 
     try {
+        const secretKey = process.env.SECRET_KEY;
         const decoded = jwt.verify(token, secretKey)
         console.log(decoded);
         if (decoded.exp > Date.now()) {

@@ -9,21 +9,20 @@ router.post("/register", function (req, res, next) {
   const email = req.body.email
   const password = req.body.password
 
-
   //verify body
   if (!email || !password) {
     res.status(400).json({
       error: true,
       message: "Request body incomplete - email and password needed"
-    });
-    return;
+    })
+    return
   }
   //check for user if they exist in the database
   const queryUsers = req.db.from("users").select("*").where("email", "=", email)
   queryUsers
     .then((users) => {
       if (users.length > 0) {
-        res.status(409).json({
+        res.status(401).json({
           error: true,
           message: "User already exists!"
         });
@@ -65,7 +64,7 @@ router.post("/login", function (req, res, next) {
   queryUsers
     .then((users) => {
       if (users.length === 0) {
-        res.status(409).json({
+        res.status(401).json({
           error: true,
           message: "User does not exist"
         })
@@ -78,7 +77,7 @@ router.post("/login", function (req, res, next) {
     })
     .then((match) => {
       if (!match) {
-        res.status(409).json({
+        res.status(401).json({
           error: true,
           message: "Passwords do not match!"
         })
@@ -86,11 +85,8 @@ router.post("/login", function (req, res, next) {
       }
       //create and return JWT token
       const secretKey = process.env.SECRET_KEY;
-      console.log(secretKey);
       const expires_in = 60 * 60 * 24 //1 day
-      const exp = Math.floor(Date.now() / 1000) + (60 * 60)
-      console.log(exp);
-      console.log(Math.floor(Date.now() / 1000));
+      const exp = Date.now() + expires_in * 1000
       const token = jwt.sign({ email, exp }, secretKey)
       return res.json({ token_type: "Bearer", token, expires_in })
     })

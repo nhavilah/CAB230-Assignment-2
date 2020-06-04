@@ -13,19 +13,20 @@ async function findAllSymbols() {
 }
 async function findSymbolsByIndustry(industry) {
     let stocks;
-    stocks = await knex.from("stocks").select("name", "symbol", "industry").where('industry', 'LIKE', industry + '%').distinct()
+    console.log(industry);
+    stocks = await knex.from("stocks").select("name", "symbol", "industry").where('industry', 'LIKE', "%" + industry + "%").distinct()
     if (stocks.length === 0) {
         throw {
             error: true,
             status: 404,
-            message: "Industry sector not found"
+            message: "Not found"
         }
     }
     return stocks
 }
 async function findCompaniesBySymbol(symbol) {
     let stocks;
-    stocks = await knex.from("stocks").select("timestamp", "symbol", "name", "industry", "open", "high", "low", "close", "volumes").where('symbol', '=', symbol).distinct().limit(1)
+    stocks = await knex.from("stocks").select("timestamp", "symbol", "name", "industry", "open", "high", "low", "close", "volumes").where('symbol', '=', symbol).distinct()
     if (stocks.length === 0) {
         throw {
             error: true,
@@ -33,5 +34,5 @@ async function findCompaniesBySymbol(symbol) {
             message: "No entry for symbol in stocks database"
         }
     }
-    return stocks
+    return stocks[0]
 }

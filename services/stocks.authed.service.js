@@ -35,7 +35,7 @@ async function findAuthedSymbolsByStartDate(symbol, fromDate) {
             message: "From date cannot be parsed by Date.parse()"
         }
     } else {
-        stocks = await knex.from("stocks").select("timestamp", "symbol", "name", "industry", "open", "high", "low", "close", "volumes").where('symbol', '=', symbol).andWhere('timestamp', '>=', fromDate).distinct().orderBy('timestamp')
+        stocks = await knex.from("stocks").select("timestamp", "symbol", "name", "industry", "open", "high", "low", "close", "volumes").where('symbol', '=', symbol).andWhere('timestamp', '>=', "%" + fromDate.substring(0, 10) + "%").distinct().orderBy('timestamp')
         if (stocks.length === 0) {
             throw {
                 error: true,
@@ -49,7 +49,7 @@ async function findAuthedSymbolsByStartDate(symbol, fromDate) {
 
 async function findAuthedSymbolsByEndDate(symbol, toDate) {
     let stocks;
-    if (toDate.length !== 10) {
+    if (toDate.length <= 30) {
         throw {
             error: true,
             status: 400,
@@ -62,7 +62,7 @@ async function findAuthedSymbolsByEndDate(symbol, toDate) {
             message: "To date cannot be parsed by Date.parse()"
         }
     } else {
-        stocks = await knex.from("stocks").select("timestamp", "symbol", "name", "industry", "open", "high", "low", "close", "volumes").where('symbol', '=', symbol).andWhere('timestamp', '<=', toDate).distinct().orderBy('timestamp')
+        stocks = await knex.from("stocks").select("timestamp", "symbol", "name", "industry", "open", "high", "low", "close", "volumes").where('symbol', '=', symbol).andWhere('timestamp', '<=', "%" + toDate.substring(0, 10) + "%").distinct().orderBy('timestamp')
         if (stocks.length === 0) {
             throw {
                 error: true,
@@ -76,26 +76,12 @@ async function findAuthedSymbolsByEndDate(symbol, toDate) {
 
 async function findAuthedSymbolBetweenDates(symbol, fromDate, toDate) {
     let stocks;
-    if (fromDate.length !== 10 || fromDate[8] > 3) {
+    stocks = await knex.from("stocks").select("timestamp", "symbol", "name", "industry", "open", "high", "low", "close", "volumes").andWhere('timestamp', '>=', fromDate.substring(0, 10)).andWhere('timestamp', '<=', toDate.substring(0, 10)).andWhere('symbol', '=', symbol).distinct()
+    if (stocks.length === 0) {
         throw {
             error: true,
-            status: 400,
-            message: "From date cannot be parsed by Date.parse()"
-        }
-    } else if (toDate.length !== 10 || toDate[8] > 3) {
-        throw {
-            error: true,
-            status: 400,
-            message: "To date cannot be parsed by Date.parse()"
-        }
-    } else {
-        stocks = await knex.from("stocks").select("timestamp", "symbol", "name", "industry", "open", "high", "low", "close", "volumes").whereBetween('timestamp', [fromDate, toDate]).andWhere('symbol', '=', symbol).distinct()
-        if (stocks.length === 0) {
-            throw {
-                error: true,
-                status: 404,
-                message: "No entries available for query symbol for supplied date range"
-            }
+            status: 404,
+            message: "Not found"
         }
     }
     return stocks

@@ -13,16 +13,13 @@ router.get('/symbols', async (req, res) => {
                 stocks = await stockServices.findSymbolsByIndustry(req.query.industry)
                 res.status(200)
                 res.send(stocks)
+            } else if (Object.keys(req.query).length === 0) {
+                stocks = await stockServices.findAllSymbols()
+                res.status(200)
+                res.send(stocks)
             } else {
-                console.log(req.query);
-                if (Object.keys(req.query).length === 0) {
-                    stocks = await stockServices.findAllSymbols()
-                    res.status(200)
-                    res.send(stocks)
-                } else {
-                    res.status(400)
-                    res.send({ error: true, message: "Invalid query parameter: only 'industry' is permitted" })
-                }
+                res.status(400)
+                res.send({ error: true, message: "Invalid query parameter: only 'industry' is permitted" })
             }
         }
     }
@@ -40,10 +37,16 @@ router.get('/:symbol', async (req, res) => {
             res.status(400)
             res.send({ error: true, message: "Stock symbol incorrect format - must be 1-5 capital letters" })
         } else {
-            stocks = await stockServices.findCompaniesBySymbol(req.params.symbol)
-            res.status(200)
-            res.send(stocks)
+            if (Object.keys(req.query).length !== 0) {
+                res.status(400)
+                res.send({ message: "Bad request" })
+            } else {
+                stocks = await stockServices.findCompaniesBySymbol(req.params.symbol)
+                res.status(200)
+                res.send(stocks)
+            }
         }
+
     }
     catch (error) {
         res.status(error.status || 500)
@@ -53,6 +56,7 @@ router.get('/:symbol', async (req, res) => {
 
 const authorize = (req, res, next) => {
     const authorization = req.headers.authorization
+    console.log(authorization);
     let token = null;
 
     //retrieve token
@@ -98,7 +102,6 @@ router.get('/authed/:symbol', authorize, async (req, res) => {
         } else {
             if (req.query) {
                 if (req.query.from && req.query.to) {
-                    console.log("yes");
                     stocks = await authedServices.findAuthedSymbolBetweenDates(req.params.symbol, req.query.from, req.query.to)
                     res.status(200)
                     res.send(stocks)
